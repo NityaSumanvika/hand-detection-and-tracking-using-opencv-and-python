@@ -7,7 +7,7 @@ import math
 import time
 
 def calcfing(res,draw):
-    hull = cv2.convexHull(res,returnPoints = False)#convexhull formation
+    hull = cv2.convexHull(res,returnPoints = False)
     if len(hull)>3:
         defects = cv2.convexityDefects(res,hull)
         if defects is not None:
@@ -25,33 +25,32 @@ def calcfing(res,draw):
                     cnt = cnt+1
                     cv2.circle(draw,far,8,[255,0,0],-1)
             if cnt>0:
-                return True ,  cnt+1
+                return True ,  cnt + 1
             else:
                 return True , 0
     return False , 0
-
-cam = cv2.VideoCapture(0)#initialize the cam
-cam.set(10, 200)#resolution of cam
+cam = cv2.VideoCapture(0)
+cam.set(10, 200)
 
 while cam.isOpened():
     ret,image = cam.read()
-    image = cv2.bilateralFilter(image,5,50,100)#smoothing
-    image = cv2.flip(image,1)#flip
-    cv2.imshow('input',image)#input show
-    bgModel = cv2.createBackgroundSubtractorMOG2(0,50)#background subtraction
-    fgmask = bgModel.apply(image)#masking
-    kernel = np.ones((3,3),np.uint8)#morphological transaction like dilation
-    fgmask = cv2.erode(fgmask,kernel)#erosion
-    img = cv2.bitwise_and(image,image,mask = fgmask)#noise less image
+    image = cv2.bilateralFilter(image,5,50,100)
+    image = cv2.flip(image,1)
+    cv2.imshow('input',image)
+    bgModel = cv2.createBackgroundSubtractorMOG2(0,50)#here 50 is sharpness
+    fgmask = bgModel.apply(image)
+    kernel = np.ones((3,3),np.uint8)
+    fgmask = cv2.erode(fgmask,kernel)
+    img = cv2.bitwise_and(image,image,mask = fgmask)
 
-    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)#hsv converted
+    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     l = np.array([0,48,80] , dtype ="uint8")
     u = np.array([20,255,255] , dtype="uint8")
     skin = cv2.inRange(hsv, l ,u)
     cv2.imshow("hsv image", skin)
 
     hand = copy.deepcopy(skin)
-    contours,hierarchy = cv2.findContours(hand,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)#contour finding
+    contours,hierarchy = cv2.findContours(hand,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     length = len(contours)
     p=-1
     if length>0:
@@ -66,8 +65,8 @@ while cam.isOpened():
         cv2.drawContours(draw, [res],0,(0,255,0),2)
         cv2.drawContours(draw, [hull], 0 , (0,225,0),3)
         isFinishCal, cnt = calcfing(res,draw)
-        print ("fingers",cnt)
-        time.sleep(0.5)
+        print ("fingers",cnt-1)
+        time.sleep(1)
         cv2.imshow('output',draw)
         k = cv2.waitKey(10)
     if k == 27:
